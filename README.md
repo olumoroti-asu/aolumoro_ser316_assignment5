@@ -54,6 +54,18 @@ These are the 6 functional requirements I plan to fulfill:
 
 ---
 
+## Build Environment
+
+| Tool | Version |
+|---|---|
+| JDK | Java 18.0.2.1 |
+| JUnit | 5.10.0 |
+| Checkstyle | 10.12.4 |
+| SpotBugs | 6.0.9 (plugin), 4.8.3 (annotations) |
+| Gradle | 8.x |
+
+---
+
 ## Concerns / Questions
 
 1. **Observer vs just calling methods directly:** For a small simulation, the Observer pattern adds a bit of extra structure. I think it's worth it here because there are genuinely multiple things that react to the same event (status change), but I want to make sure I'm not over-complicating simple cases where only one thing cares.

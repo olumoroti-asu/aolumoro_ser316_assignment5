@@ -1,0 +1,72 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'checkstyle'
+    id 'com.github.spotbugs' version '6.0.9'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.3'
+}
+
+application {
+    mainClass = 'shelter.Main'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_18
+    targetCompatibility = JavaVersion.VERSION_18
+}
+
+test {
+    useJUnitPlatform()
+}
+
+checkstyle {
+    toolVersion = '10.12.4'
+    configFile = file('config/checkstyle.xml')
+    ignoreFailures = true
+}
+
+spotbugs {
+    ignoreFailures = true
+    effort = 'default'
+    reportLevel = 'medium'
+}
+
+spotbugsMain {
+    reports {
+        html {
+            required = true
+        }
+        xml {
+            required = false
+        }
+    }
+}
+
+spotbugsTest {
+    reports {
+        html {
+            required = true
+        }
+        xml {
+            required = false
+        }
+    }
+}
+
+task runSystemDebug(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the application with verbose debug output enabled'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'shelter.Main'
+    jvmArgs = ['-verbose:class']
+    systemProperties = ['debug': 'true', 'shelter.verbose': 'true']
+}
