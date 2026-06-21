@@ -17,4 +17,10 @@ public class AnimalTest {
         String name = "PetShelter";
         assertTrue(name.startsWith("Pet"));
     }
+
+    @Test
+    public void testSampleBoolean() {
+        boolean isOpen = true;
+        assertTrue(isOpen);
+    }
 }
