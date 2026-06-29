@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'checkstyle'
+    id 'jacoco'
     id 'com.github.spotbugs' version '6.0.9'
 }
 
@@ -58,6 +59,42 @@ spotbugsTest {
         }
         xml {
             required = false
+        }
+    }
+}
+
+jacoco {
+    toolVersion = '0.8.11'
+}
+
+jacocoTestReport {
+    dependsOn test
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: ['shelter/Main.class'])
+        }))
+    }
+    reports {
+        html {
+            required = true
+        }
+        xml {
+            required = false
+        }
+    }
+}
+
+jacocoTestCoverageVerification {
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: ['shelter/Main.class'])
+        }))
+    }
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.60
+            }
         }
     }
 }
