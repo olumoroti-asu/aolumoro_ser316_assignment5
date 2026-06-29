@@ -102,4 +102,37 @@ public class VeterinarianTest {
         Veterinarian vet = new Veterinarian("Dr. Patel");
         assertTrue(vet instanceof AnimalObserver);
     }
+
+    @Test
+    public void testOnStatusChangeDoesNotThrowForPendingStatus() {
+        Veterinarian vet = new Veterinarian("Dr. Patel");
+        Animal animal = new Animal("A001", "Dog", 3, "healthy", "SZ-001", "stray");
+        animal.addObserver(vet);
+        animal.setStatus("pending");
+        assertEquals("pending", animal.getStatus());
+    }
+
+    @Test
+    public void testOnStatusChangeDoesNotThrowForAdoptedStatus() {
+        Veterinarian vet = new Veterinarian("Dr. Patel");
+        Animal animal = new Animal("A001", "Dog", 3, "healthy", "SZ-001", "stray");
+        animal.addObserver(vet);
+        animal.setStatus("adopted");
+        assertEquals("adopted", animal.getStatus());
+    }
+
+    @Test
+    public void testSameNameProducesSameHash() {
+        Veterinarian vet1 = new Veterinarian("Dr. Patel");
+        Veterinarian vet2 = new Veterinarian("Dr. Patel");
+        assertEquals(vet1.getCredeniaHash(), vet2.getCredeniaHash());
+    }
+
+    @Test
+    public void testMedLogEntryHasCorrectNote() {
+        Veterinarian vet = new Veterinarian("Dr. Patel");
+        Animal animal = new Animal("A001", "Dog", 3, "healthy", "SZ-001", "stray");
+        vet.clearAnimal(animal);
+        assertTrue(vet.getMedLog().get(0).getNote().contains("cleared for adoption"));
+    }
 }

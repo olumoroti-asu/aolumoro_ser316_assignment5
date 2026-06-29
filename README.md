@@ -80,6 +80,79 @@ These are the 6 functional requirements I plan to fulfill:
 
 ---
 
+## Requirements to Pattern Mapping
+
+| Requirement | Description | Pattern |
+|---|---|---|
+| R1.1 | 5 starting animals with ID, species, age, health, shelterZoneCode | Factory |
+| R1.2 | New animals arrive each cycle as stray or surrender | Factory |
+| R1.3 | Animal status changes trigger automatic reactions | Observer |
+| R2.1 | Veterinarian and AdoptionCounselor staff roles | Observer |
+| R3.1 | Adopters matched to animals by preferences each cycle | Observer |
+| R3.3 | One successful adoption and one returned adoption | Observer |
+| R4.1 | Daily feeding and cleaning for all non-adopted animals | Observer |
+
+---
+
+## Trade-off Analysis
+
+### Factory Pattern — chosen over direct constructors
+
+**Alternative considered:** Calling `new Dog(...)`, `new Cat(...)`, `new Rabbit(...)` directly wherever a new animal is needed.
+
+**Pros of direct constructors:** Simpler — no extra class, fewer files.
+
+**Cons of direct constructors:** Every place that creates an animal also has to know the species, assign a zone code, and set the starting status manually. If zone code format changes, every call site breaks. Also makes it easy to forget to register observers.
+
+**Why Factory:** All animal creation goes through one place. Zone codes auto-increment and are always in the right format. Adding a new species like `Bird` only requires one new class and one extra branch in the factory — nothing else in the codebase needs to change.
+
+### Observer Pattern — chosen over direct method calls
+
+**Alternative considered:** After each status change, manually call the relevant staff methods in the simulation loop (e.g. `counselor.addToPool(animal)` after `animal.setStatus("available")`).
+
+**Pros of direct calls:** Easy to trace — you can see exactly what happens after each status change just by reading the loop.
+
+**Cons of direct calls:** The main loop becomes tightly coupled to every staff class. Adding a new observer (e.g. a `NotificationService`) means editing the simulation loop. Status changes in multiple places each need the same manual calls added, making bugs easy to introduce.
+
+**Why Observer:** Each observer manages its own reaction. `Animal.setStatus()` just fires the notification — it does not know or care what happens next. The counselor, vet, and care scheduler each respond independently. This keeps the main loop clean and makes it easy to add new observers without touching existing code.
+
+---
+
+## Design Evolution
+
+### What changed from the initial plan
+
+The initial plan in Deliverable A described the Observer pattern with the `Animal` class holding a list of observers and calling a `notify()` method. The final implementation matches this closely, but a few things changed during development:
+
+- **`notify()` was renamed to `setStatus()`** — combining the status update and notification into one method made more sense than having a separate notify call after every setter. This reduced the chance of forgetting to notify.
+- **`CareScheduler` was added as a third observer** — the original plan only mentioned `AdoptionCounselor` and `Veterinarian` as observers. Adding `CareScheduler` as an observer meant the care list updates automatically on every status change with no extra logic in the simulation loop.
+- **Adoption return was handled in the main loop rather than by observers** — the initial plan considered having the observer handle failed adoptions automatically. In the final version the main loop explicitly calls `counselor.returnAnimal()` on Day 5, which is simpler and easier to follow for a simulation with a scripted storyline.
+- **The zone counter stays inside `AnimalFactory`** — the original concern was whether the counter would reset mid-simulation. Keeping it as an instance variable on the single factory object used throughout the simulation solved this cleanly.
+
+### Hardest part
+
+Getting the observer wiring right so that the matching pool and care list stayed consistent across status transitions was the most challenging part. When an animal goes from `available` to `pending`, both the counselor and the care scheduler need to react correctly — the counselor removes it from the matching pool, but the care scheduler keeps it on the care list (pending animals still need feeding). Getting those two reactions right without them interfering with each other required careful thought about what each observer's `onStatusChange` should do.
+
+---
+
+## Resources Used
+
+- *Head First Design Patterns* (Freeman & Robson) — used to understand the GoF Observer and Factory patterns and confirm the structure followed the specification correctly.
+- Oracle Java documentation — referenced for `MessageDigest` SHA-256 usage in `getCredeniaHash()` and `UUID.randomUUID()` in `MedicalLogEntry`.
+- Gradle documentation (gradle.org) — referenced for JaCoCo plugin configuration and the `jacocoTestReport` task setup.
+
+---
+
+## Challenges Faced
+
+1. **Observer notification order** — all three observers (`Veterinarian`, `AdoptionCounselor`, `CareScheduler`) are registered on every animal. When `clearAnimal()` calls `setStatus("available")`, all three fire in registration order. The vet's observer prints a note, then the counselor adds the animal to the matching pool. This order matters — if the counselor ran first before the status was actually set, it would miss the animal. Resolved by ensuring `setStatus` updates the field first, then fires observers.
+
+2. **Preventing duplicates in the matching pool and care list** — when an animal's status changes back to `available` after a return, the observer fires again. Without a guard, the animal would be added to both lists a second time. Resolved by checking `if (!list.contains(animal))` before adding in both `AdoptionCounselor` and `CareScheduler`.
+
+3. **Zone code counter persistence** — early on it was unclear where the counter should live so it does not reset between calls. Keeping it as a private instance variable on the single `AnimalFactory` instance created in `Main` meant it persists naturally for the whole simulation without needing any static state.
+
+---
+
 ## Usage of AI
 
 All Javadoc comments across the source files in this project were generated by AI.

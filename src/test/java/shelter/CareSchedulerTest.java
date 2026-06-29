@@ -97,6 +97,26 @@ public class CareSchedulerTest {
     }
 
     @Test
+    public void testRunDailyCareDoesNotThrowOnEmptyList() {
+        CareScheduler scheduler = new CareScheduler();
+        scheduler.runDailyCare();
+        assertTrue(scheduler.getCareList().isEmpty());
+    }
+
+    @Test
+    public void testRunDailyCareDoesNotThrowWithAnimals() {
+        CareScheduler scheduler = new CareScheduler();
+        Animal a1 = new Animal("A001", "Dog", 3, "healthy", "SZ-001", "stray");
+        Animal a2 = new Animal("A002", "Cat", 2, "healthy", "SZ-002", "stray");
+        a1.addObserver(scheduler);
+        a2.addObserver(scheduler);
+        a1.setStatus("available");
+        a2.setStatus("pending");
+        scheduler.runDailyCare();
+        assertEquals(2, scheduler.getCareList().size());
+    }
+
+    @Test
     public void testReturnedAnimalReappearsInCareList() {
         CareScheduler scheduler = new CareScheduler();
         Animal animal = new Animal("A001", "Dog", 3, "healthy", "SZ-001", "stray");
